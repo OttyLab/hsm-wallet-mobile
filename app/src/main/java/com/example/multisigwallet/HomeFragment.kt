@@ -20,6 +20,9 @@ import java.util.TimerTask
 class HomeFragment : Fragment() {
     private lateinit var address: String
     private lateinit var textBalance: TextView
+    private lateinit var buttonTransfer: Button
+    private lateinit var buttonReceive: Button
+    private lateinit var timer: Timer
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,16 +31,24 @@ class HomeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         textBalance = view.findViewById<TextView>(R.id.textBalance)
-        val button = view.findViewById<Button>(R.id.buttonTransfer)
-        button.setOnClickListener(object : View.OnClickListener{
+        buttonTransfer = view.findViewById<Button>(R.id.buttonTransfer)
+        buttonTransfer.setOnClickListener(object : View.OnClickListener{
             override fun onClick(v: View?) {
                 findNavController().navigate(R.id.action_home_to_transfer)
             }
         })
 
+        buttonReceive = view.findViewById<Button>(R.id.buttonReceive)
+        buttonReceive.setOnClickListener(object : View.OnClickListener{
+            override fun onClick(v: View?) {
+                findNavController().navigate(R.id.action_home_to_receive)
+            }
+        })
+
         initAddress()
 
-        Timer().scheduleAtFixedRate(object: TimerTask(){
+        timer = Timer()
+        timer.scheduleAtFixedRate(object: TimerTask(){
             override fun run() {
                 val scope= CoroutineScope(Dispatchers.Main)
                 scope.launch {
@@ -45,7 +56,13 @@ class HomeFragment : Fragment() {
                 }
             }
         }, 0, 10000)
+
         return view
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        timer.cancel()
     }
 
     private fun initAddress() {

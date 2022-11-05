@@ -23,6 +23,9 @@
         <action
             android:id="@+id/action_home_to_transfer"
             app:destination="@+id/transferFragment" />
+        <action
+            android:id="@+id/action_home_to_receive"
+            app:destination="@+id/receiveFragment" />
     </fragment>
 
     <fragment
@@ -32,6 +35,15 @@
         tools:layout="@layout/fragment_transfer">
         <action
             android:id="@+id/action_transfer_to_home"
+            app:destination="@+id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/receiveFragment"
+        android:name="com.example.multisigwallet.ReceiveFragment"
+        android:label="ReceiveFragment">
+        <action
+            android:id="@+id/action_receive_to_home"
             app:destination="@+id/homeFragment" />
     </fragment>
 </navigation>
