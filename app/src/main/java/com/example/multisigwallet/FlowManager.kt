@@ -9,6 +9,7 @@ import com.nftco.flow.sdk.cadence.UFix64NumberField
 import java.io.InputStreamReader
 import java.math.BigDecimal
 import com.google.firebase.ktx.Firebase
+import com.nftco.flow.sdk.cadence.StringField
 import io.grpc.StatusRuntimeException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -27,6 +28,11 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
         return account.balance
     }
 
+    fun getKeyIndex(address: FlowAddress, pk: String): Int{
+        val account = getAccount(address)
+        return account.getKeyIndex(pk)
+    }
+
     suspend fun createAccount(pk: String): String {
         return suspendCoroutine { continuation ->
             functions
@@ -42,31 +48,28 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
         }
     }
 
+    fun addPk(sender: String, pk: String): FlowId {
+        val stream = activity.assets.open("add_pk.cdc")
+        val script = InputStreamReader(stream).buffered().use { it.readText() }
+        val args = listOf(FlowArgument(StringField(pk)))
+
+        val txId = sendTransaction(sender, FlowScript(script), args)
+        Log.d("FlowManager", "add pk txId=${txId.bytes.toHexString()}")
+
+        return txId
+    }
+
     fun transfer(from: String, to: String, amount: BigDecimal): FlowId {
-        val sender = FlowAddress(from)
-        val key = getAccountKey(sender, 0)
         val stream = activity.assets.open("transfer.cdc")
         val script = InputStreamReader(stream).buffered().use { it.readText() }
-        var tx = FlowTransaction(
-            script = FlowScript(script),
-            arguments = listOf(
-                FlowArgument(UFix64NumberField(amount.toDouble().toString())),
-                FlowArgument(AddressField(to))),
-            referenceBlockId = latestBlockId,
-            gasLimit = 100,
-            proposalKey = FlowTransactionProposalKey(
-                address = sender,
-                keyIndex = 0,
-                sequenceNumber = key.sequenceNumber.toLong()
-            ),
-            payerAddress = sender,
-            authorizers = listOf(sender)
+        val args = listOf(
+            FlowArgument(UFix64NumberField(amount.toDouble().toString())),
+            FlowArgument(AddressField(to)),
         )
 
-        val signer = SignerImpl(activity)
-        tx = tx.addEnvelopeSignature(sender, 0, signer)
-        val txId = accessApi.sendTransaction(tx)
+        val txId = sendTransaction(from, FlowScript(script), args)
         Log.d("FlowManager", "transfer txId=${txId.bytes.toHexString()}")
+
         return txId
     }
 
@@ -94,5 +97,38 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
             throw Exception(txResult.errorMessage)
         }
         return txResult
+    }
+
+    private fun sendTransaction(sender: String, script:FlowScript, args: List<FlowArgument>): FlowId {
+        val sender = FlowAddress(sender)
+        val signer = SignerImpl(activity)
+        val pk = signer.getPublicKey()
+        val keyIndex = getKeyIndex(sender, pk)
+
+        Log.d("FlowManager", "pk=${pk}, keyIndex=${keyIndex}")
+
+        if (keyIndex == -1) {
+            Log.e("FlowManager", "PK does not exiest")
+            return FlowId("0x0")
+        }
+
+        val key = getAccountKey(sender, keyIndex)
+        var tx = FlowTransaction(
+            script = script,
+            arguments = args,
+            referenceBlockId = latestBlockId,
+            gasLimit = 100,
+            proposalKey = FlowTransactionProposalKey(
+                address = sender,
+                keyIndex = keyIndex,
+                sequenceNumber = key.sequenceNumber.toLong()
+            ),
+            payerAddress = sender,
+            authorizers = listOf(sender)
+        )
+
+        tx = tx.addEnvelopeSignature(sender, keyIndex, signer)
+        val txId = accessApi.sendTransaction(tx)
+        return txId
     }
 }

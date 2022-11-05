@@ -30,6 +30,12 @@ class SignerImpl(activity: FragmentActivity) : Signer {
         return signature!!
     }
 
+    fun getPublicKey(): String {
+        val ks = KeyStore.getInstance(AccountManager.PROVIDER).apply { load(null) }
+        val entry = ks.getEntry(AccountManager.ALIAS, null) as KeyStore.PrivateKeyEntry
+        return entry.certificate.publicKey.encoded.slice(27..90).toByteArray().toHexString()
+    }
+
     private suspend fun signInternal(message: ByteArray): ByteArray {
         return suspendCoroutine { continuation ->
             showFingerprint { cryotoObject ->

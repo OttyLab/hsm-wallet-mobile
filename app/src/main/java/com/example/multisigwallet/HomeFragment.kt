@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
 import com.nftco.flow.sdk.FlowAddress
@@ -22,6 +23,7 @@ class HomeFragment : Fragment() {
     private lateinit var textBalance: TextView
     private lateinit var buttonTransfer: Button
     private lateinit var buttonReceive: Button
+    private lateinit var imageButtonSetting: ImageButton
     private lateinit var timer: Timer
 
     override fun onCreateView(
@@ -42,6 +44,13 @@ class HomeFragment : Fragment() {
         buttonReceive.setOnClickListener(object : View.OnClickListener{
             override fun onClick(v: View?) {
                 findNavController().navigate(R.id.action_home_to_receive)
+            }
+        })
+
+        imageButtonSetting = view.findViewById(R.id.imageButtonSetting)
+        imageButtonSetting.setOnClickListener(object : View.OnClickListener{
+            override fun onClick(v: View?) {
+                findNavController().navigate(R.id.action_home_to_setting)
             }
         })
 

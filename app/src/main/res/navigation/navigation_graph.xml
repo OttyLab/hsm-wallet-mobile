@@ -26,6 +26,9 @@
         <action
             android:id="@+id/action_home_to_receive"
             app:destination="@+id/receiveFragment" />
+        <action
+            android:id="@+id/action_home_to_setting"
+            app:destination="@+id/settingFragment" />
     </fragment>
 
     <fragment
@@ -46,4 +49,14 @@
             android:id="@+id/action_receive_to_home"
             app:destination="@+id/homeFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/settingFragment"
+        android:name="com.example.multisigwallet.SettingFragment"
+        android:label="SettingFragment">
+        <action
+            android:id="@+id/action_setting_to_home"
+            app:destination="@+id/homeFragment" />
+    </fragment>
+
 </navigation>
