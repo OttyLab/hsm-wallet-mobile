@@ -48,18 +48,15 @@ class SignerImpl(activity: FragmentActivity) : Signer {
         val entry = ks.getEntry(AccountManager.ALIAS, null) as KeyStore.PrivateKeyEntry
         val signature = Signature.getInstance(AccountManager.ALGORIGHM)
 
-        val pk = entry.certificate.publicKey.encoded.slice(27..90)
-
         signature.initSign(entry.privateKey)
         return BiometricPrompt.CryptoObject(signature)
     }
 
     private fun showFingerprint(cb: (cryptoObject: BiometricPrompt.CryptoObject?) -> Unit) {
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("title")
-            .setSubtitle("subtitle")
-            .setDescription("description")
-            .setNegativeButtonText("negative")
+            .setTitle("Sign transaction")
+            .setDescription("Need biometrics authentication to sign the transaction")
+            .setNegativeButtonText("Cancel")
             .build()
 
         val executor = Executors.newSingleThreadExecutor()

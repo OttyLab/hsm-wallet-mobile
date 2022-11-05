@@ -1,13 +1,16 @@
 package com.example.multisigwallet
 
 import android.os.Bundle
+import android.service.voice.VoiceInteractionSession.VisibleActivityCallback
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +22,7 @@ class TransferFragment : Fragment() {
     private lateinit var editTextAmount: EditText
     private lateinit var buttonTransfer: Button
     private lateinit var buttonCancel: Button
+    private lateinit var progressBarTranferring: ProgressBar
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,6 +40,7 @@ class TransferFragment : Fragment() {
                 editTextAmount.isEnabled = false
                 buttonTransfer.isEnabled = false
                 buttonCancel.isEnabled = false
+                progressBarTranferring.visibility = VISIBLE
 
                 val activity = activity as MainActivity
                 val scope= CoroutineScope(Dispatchers.IO)
@@ -61,6 +66,9 @@ class TransferFragment : Fragment() {
                 findNavController().navigate(R.id.action_transfer_to_home)
             }
         })
+
+        progressBarTranferring = view.findViewById(R.id.progressBarTransfering)
+
         return view
     }
 }
