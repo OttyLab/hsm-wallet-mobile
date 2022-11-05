@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/welcomeFragment">
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.example.multisigwallet.WelcomeFragment"
+        android:label="fragment_welcome"
+        tools:layout="@layout/fragment_welcome">
+        <action
+            android:id="@+id/action_welcome_to_home"
+            app:destination="@+id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.multisigwallet.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_transfer"
+            app:destination="@+id/transferFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/transferFragment"
+        android:name="com.example.multisigwallet.TransferFragment"
+        android:label="fragment_transfer"
+        tools:layout="@layout/fragment_transfer">
+        <action
+            android:id="@+id/action_transfer_to_home"
+            app:destination="@+id/homeFragment" />
+    </fragment>
+</navigation>
