@@ -32,14 +32,25 @@ class TransferFragment : Fragment() {
         buttonTransfer = view.findViewById(R.id.buttonTransfer)
         buttonTransfer.setOnClickListener(object: View.OnClickListener{
             override fun onClick(v: View?) {
+                editTextTo.isEnabled = false
+                editTextAmount.isEnabled = false
+                buttonTransfer.isEnabled = false
+                buttonCancel.isEnabled = false
+
                 val activity = activity as MainActivity
                 val scope= CoroutineScope(Dispatchers.IO)
                 scope.launch{
-                    var address = activity.accountManager.getAddress()!!
-                    activity.flowManager.transfer(
+                    val address = activity.accountManager.getAddress()!!
+                    val txId = activity.flowManager.transfer(
                         address,
                         editTextTo.text.toString(),
                         BigDecimal(editTextAmount.text.toString()))
+                    activity.flowManager.waitForSeal(txId)
+
+                    val scope= CoroutineScope(Dispatchers.Main)
+                    scope.launch {
+                        findNavController().navigate(R.id.action_transfer_to_home)
+                    }
                 }
             }
         })

@@ -42,7 +42,7 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
         }
     }
 
-    fun transfer(from: String, to: String, amount: BigDecimal) {
+    fun transfer(from: String, to: String, amount: BigDecimal): FlowId {
         val sender = FlowAddress(from)
         val key = getAccountKey(sender, 0)
         val stream = activity.assets.open("transfer.cdc")
@@ -65,6 +65,20 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
         tx = tx.addEnvelopeSignature(sender, 0, signer)
         val txId = accessApi.sendTransaction(tx)
         Log.d("FlowManager", "transfer txId=${txId.bytes.toHexString()}")
+        return txId
+    }
+
+    fun waitForSeal(txID: FlowId): FlowTransactionResult {
+        var txResult: FlowTransactionResult
+        while (true) {
+            try {
+                txResult = getTransactionResult(txID)
+                if (txResult.status == FlowTransactionStatus.SEALED) {
+                    return txResult
+                }
+            } catch (e: StatusRuntimeException){}
+            Thread.sleep(1000)
+        }
     }
 
     private fun getAccountKey(address: FlowAddress, keyIndex: Int): FlowAccountKey {
@@ -78,18 +92,5 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
             throw Exception(txResult.errorMessage)
         }
         return txResult
-    }
-
-    private fun waitForSeal(txID: FlowId): FlowTransactionResult {
-        var txResult: FlowTransactionResult
-        while (true) {
-            try {
-                txResult = getTransactionResult(txID)
-                if (txResult.status == FlowTransactionStatus.SEALED) {
-                    return txResult
-                }
-            } catch (e: StatusRuntimeException){}
-            Thread.sleep(1000)
-        }
     }
 }
