@@ -13,6 +13,12 @@
         <action
             android:id="@+id/action_welcome_to_home"
             app:destination="@+id/homeFragment" />
+        <action
+            android:id="@+id/action_welcome_to_backup"
+            app:destination="@+id/backupFragment" />
+        <action
+            android:id="@+id/action_welcome_to_notice"
+            app:destination="@+id/noticeFragment" />
     </fragment>
 
     <fragment
@@ -57,6 +63,29 @@
         <action
             android:id="@+id/action_setting_to_home"
             app:destination="@+id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/backupFragment"
+        android:name="com.example.multisigwallet.BackupFragment"
+        android:label="fragment_backup"
+        tools:layout="@layout/fragment_backup">
+        <action
+            android:id="@+id/action_backup_to_welcome"
+            app:destination="@+id/welcomeFragment" />
+        <action
+            android:id="@+id/action_backup_to_notice"
+            app:destination="@+id/noticeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/noticeFragment"
+        android:name="com.example.multisigwallet.NoticeFragment"
+        android:label="fragment_notice"
+        tools:layout="@layout/fragment_notice">
+        <action
+            android:id="@+id/action_notice_to_welcome"
+            app:destination="@+id/welcomeFragment" />
     </fragment>
 
 </navigation>

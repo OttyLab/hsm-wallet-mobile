@@ -22,6 +22,11 @@ class AccountManager (activity: FragmentActivity){
         }
     }
 
+    fun deleteAddress() {
+        val sharedPreference = activity.getSharedPreferences("account", Context.MODE_PRIVATE)
+        sharedPreference.edit().remove(ADDRESS_KEY).apply()
+    }
+
     fun initKeyPair(): String {
         val kpg = KeyPairGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_EC,

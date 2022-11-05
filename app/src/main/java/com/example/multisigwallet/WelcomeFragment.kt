@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.navigation.fragment.findNavController
+import com.nftco.flow.sdk.FlowAddress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 class WelcomeFragment : Fragment() {
     lateinit var progressBarCreating: ProgressBar
     lateinit var buttonCreateAccount: Button
+    lateinit var buttonBackup: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,8 +39,19 @@ class WelcomeFragment : Fragment() {
             }
         })
 
+        buttonBackup = view.findViewById<Button>(R.id.buttonBackup)
+        buttonBackup.setOnClickListener(object : View.OnClickListener{
+            override fun onClick(v: View?) {
+                findNavController().navigate(R.id.action_welcome_to_backup)
+            }
+        })
+
         if (isInitialized()) {
-            findNavController().navigate(R.id.action_welcome_to_home)
+            if (isRegistered()) {
+                findNavController().navigate(R.id.action_welcome_to_home)
+            } else {
+                findNavController().navigate(R.id.action_welcome_to_notice)
+            }
         }
 
         return view
@@ -47,6 +60,13 @@ class WelcomeFragment : Fragment() {
     private fun isInitialized(): Boolean {
         val activity = activity as MainActivity
         return activity.accountManager.getAddress() != null
+    }
+
+    private fun isRegistered(): Boolean {
+        val activity = activity as MainActivity
+        val address = activity.accountManager.getAddress()
+        val pk = activity.flowManager.getPk()
+        return activity.flowManager.getKeyIndex(FlowAddress(address!!), pk) != -1
     }
 
     private fun createAccount() {

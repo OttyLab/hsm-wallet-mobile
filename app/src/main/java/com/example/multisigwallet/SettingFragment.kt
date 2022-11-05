@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 class SettingFragment : Fragment() {
     lateinit var editTextPk: EditText
     lateinit var buttonAddPk: Button
+    lateinit var buttonDelete: Button
     lateinit var buttonBack: Button
     lateinit var progressBarAdding: ProgressBar
 
@@ -53,6 +54,14 @@ class SettingFragment : Fragment() {
                         progressBarAdding.visibility = INVISIBLE
                     }
                 }
+            }
+        })
+
+        buttonDelete = view.findViewById(R.id.buttonDelete)
+        buttonDelete.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(v: View?) {
+                val activity = activity as MainActivity
+                activity.accountManager.deleteAddress()
             }
         })
 

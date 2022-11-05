@@ -48,6 +48,11 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
         }
     }
 
+    fun getPk(): String {
+        val signer = SignerImpl(activity)
+        return signer.getPublicKey()
+    }
+
     fun addPk(sender: String, pk: String): FlowId {
         val stream = activity.assets.open("add_pk.cdc")
         val script = InputStreamReader(stream).buffered().use { it.readText() }
