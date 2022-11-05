@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,6 +36,7 @@ class SettingFragment : Fragment() {
             override fun onClick(v: View?) {
                 editTextPk.isEnabled = false
                 buttonAddPk.isEnabled = false
+                buttonDelete.isEnabled = false
                 buttonBack.isEnabled = false
                 progressBarAdding.visibility = VISIBLE
 
@@ -43,13 +45,18 @@ class SettingFragment : Fragment() {
                 val scope= CoroutineScope(Dispatchers.IO)
 
                 scope.launch{
-                    val txId = activity.flowManager.addPk(sender, editTextPk.text.toString())
-                    activity.flowManager.waitForSeal(txId)
+                    try {
+                        val txId = activity.flowManager.addPk(sender, editTextPk.text.toString())
+                        activity.flowManager.waitForSeal(txId)
+                    } catch (e: Exception) {
+                        Snackbar.make(view, "Transaction error. Maybe balance is too low.", Snackbar.LENGTH_LONG).show()
+                    }
 
                     val scope= CoroutineScope(Dispatchers.Main)
                     scope.launch {
                         editTextPk.isEnabled = true
                         buttonAddPk.isEnabled = true
+                        buttonDelete.isEnabled = true
                         buttonBack.isEnabled = true
                         progressBarAdding.visibility = INVISIBLE
                     }
