@@ -65,12 +65,18 @@ class WelcomeFragment : Fragment() {
     private fun isRegistered(): Boolean {
         val activity = activity as MainActivity
         val address = activity.accountManager.getAddress()
-        val pk = activity.flowManager.getPk()
-        return activity.flowManager.getKeyIndex(FlowAddress(address!!), pk) != -1
+        try {
+            val pk = activity.flowManager.getPk()
+            return activity.flowManager.getKeyIndex(FlowAddress(address!!), pk) != -1
+        } catch (exception: java.lang.NullPointerException) {
+            activity.accountManager.initKeyPair()
+            return false
+        }
     }
 
     private fun createAccount() {
         buttonCreateAccount.isEnabled = false
+        buttonBackup.isEnabled = false
         progressBarCreating.visibility = VISIBLE
 
         val activity = activity as MainActivity

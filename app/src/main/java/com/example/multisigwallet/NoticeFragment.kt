@@ -17,6 +17,7 @@ class NoticeFragment : Fragment() {
     private lateinit var textViewPk: TextView
     private lateinit var buttonCopy: Button
     private lateinit var buttonDone: Button
+    private lateinit var buttonReset: Button
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,6 +45,15 @@ class NoticeFragment : Fragment() {
                 findNavController().navigate(R.id.action_notice_to_welcome)
             }
         })
+
+        buttonReset = view.findViewById(R.id.buttonReset)
+        buttonReset.setOnClickListener(object: View.OnClickListener {
+            override fun onClick(v: View?) {
+                activity.accountManager.deleteAddress()
+                findNavController().navigate(R.id.action_notice_to_welcome)
+            }
+        })
+
         return view
     }
 }
