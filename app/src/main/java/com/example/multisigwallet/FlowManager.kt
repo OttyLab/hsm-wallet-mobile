@@ -49,7 +49,9 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
         val script = InputStreamReader(stream).buffered().use { it.readText() }
         var tx = FlowTransaction(
             script = FlowScript(script),
-            arguments = listOf(FlowArgument(UFix64NumberField(amount.toString())), FlowArgument(AddressField(to))),
+            arguments = listOf(
+                FlowArgument(UFix64NumberField(amount.toDouble().toString())),
+                FlowArgument(AddressField(to))),
             referenceBlockId = latestBlockId,
             gasLimit = 100,
             proposalKey = FlowTransactionProposalKey(
