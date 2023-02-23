@@ -6,19 +6,29 @@
     android:layout_height="match_parent"
     tools:context=".SettingFragment">
 
-    <EditText
-        android:id="@+id/editTextPk"
+    <ImageView
+        android:id="@+id/imageViewQr"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="400px"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="75dp"
+        android:layout_marginTop="50dp"
         android:layout_marginEnd="100dp"
-        android:ems="10"
-        android:hint="Public key"
-        android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@tools:sample/avatars" />
+
+    <TextView
+        android:id="@+id/textViewAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="100dp"
+        android:text="TextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewQr" />
 
     <Button
         android:id="@+id/buttonAddPk"
@@ -27,10 +37,10 @@
         android:layout_marginStart="100dp"
         android:layout_marginTop="100dp"
         android:layout_marginEnd="100dp"
-        android:text="Add Public Key"
+        android:text="Scan Backup PK"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPk" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewAddress" />
 
     <Button
         android:id="@+id/buttonBack"
@@ -55,7 +65,7 @@
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPk" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewAddress" />
 
     <Button
         android:id="@+id/buttonDelete"

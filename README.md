@@ -68,3 +68,6 @@ Flowはアカウントをオンチェーンで管理している。ウォレッ�
 [送金](./img/2.transfer_s.mp4)
 [START AS　BACKUP](./img/3.backup_s.mp4)
 [公開鍵追加](./img/4.add_s.mp4)
+
+## Reference
+QR code reader: https://qiita.com/takasshii/items/5749a50e18fb524b72e6

@@ -1,6 +1,5 @@
 package com.example.multisigwallet
 
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -11,6 +10,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import com.nftco.flow.sdk.FlowAddress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +31,27 @@ class WelcomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val launcher = registerForActivityResult(ScanContract()) { result ->
+            if (result.contents != null) {
+                val code = result.contents.toString()
+                val address = readAccount(code)
+
+                if(address == null) {
+                    Snackbar
+                        .make(
+                            this.requireView(),
+                            "Unexpected QR code: ${code}",
+                            Snackbar.LENGTH_SHORT)
+                        .show()
+                } else {
+                    val activity = activity as MainActivity
+                    activity.accountManager.setAddress(address)
+                    activity.accountManager.initKeyPair()
+                    findNavController().navigate(R.id.action_welcome_to_notice)
+                }
+            }
+        }
+
         val view = inflater.inflate(R.layout.fragment_welcome, container, false)
 
         progressBarCreating = view.findViewById(R.id.progressBarCreating)
@@ -42,7 +65,10 @@ class WelcomeFragment : Fragment() {
         buttonBackup = view.findViewById<Button>(R.id.buttonBackup)
         buttonBackup.setOnClickListener(object : View.OnClickListener{
             override fun onClick(v: View?) {
-                findNavController().navigate(R.id.action_welcome_to_backup)
+                val options = ScanOptions()
+                    .setPrompt("Scan account information on 1st device setting screen")
+                    .setOrientationLocked(false)
+                launcher.launch(options)
             }
         })
 
