@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/welcomeFragment"
         android:name="com.example.multisigwallet.WelcomeFragment"
-        android:label="fragment_welcome"
+        android:label="Lite HSM Wallet"
         tools:layout="@layout/fragment_welcome">
         <action
             android:id="@+id/action_welcome_to_home"
@@ -21,11 +21,17 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.multisigwallet.HomeFragment"
-        android:label="fragment_home"
+        android:label="Lite HSM Wallet"
         tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_home_to_transfer"
             app:destination="@+id/transferFragment" />
+        <action
+            android:id="@+id/action_home_to_multisig_transfer"
+            app:destination="@+id/multisigTransferFragment" />
+        <action
+            android:id="@+id/action_home_to_sign_transfer"
+            app:destination="@+id/signTransferFragment" />
         <action
             android:id="@+id/action_home_to_receive"
             app:destination="@+id/receiveFragment" />
@@ -37,7 +43,7 @@
     <fragment
         android:id="@+id/transferFragment"
         android:name="com.example.multisigwallet.TransferFragment"
-        android:label="fragment_transfer"
+        android:label="Transfer"
         tools:layout="@layout/fragment_transfer">
         <action
             android:id="@+id/action_transfer_to_home"
@@ -45,9 +51,29 @@
     </fragment>
 
     <fragment
+        android:id="@+id/multisigTransferFragment"
+        android:name="com.example.multisigwallet.MultisigTransferFragment"
+        android:label="Create Multisig TX"
+        tools:layout="@layout/fragment_multisig_transfer">
+        <action
+            android:id="@+id/action_multisig_transfer_to_home"
+            app:destination="@+id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signTransferFragment"
+        android:name="com.example.multisigwallet.SignTransferFragment"
+        android:label="Sign Multisig TX"
+        tools:layout="@layout/fragment_sign_transfer">
+        <action
+            android:id="@+id/action_sign_transfer_to_home"
+            app:destination="@+id/homeFragment" />
+    </fragment>
+
+    <fragment
         android:id="@+id/receiveFragment"
         android:name="com.example.multisigwallet.ReceiveFragment"
-        android:label="ReceiveFragment">
+        android:label="Address">
         <action
             android:id="@+id/action_receive_to_home"
             app:destination="@+id/homeFragment" />
@@ -56,7 +82,7 @@
     <fragment
         android:id="@+id/settingFragment"
         android:name="com.example.multisigwallet.SettingFragment"
-        android:label="SettingFragment">
+        android:label="Settings">
         <action
             android:id="@+id/action_setting_to_home"
             app:destination="@+id/homeFragment" />
@@ -65,7 +91,7 @@
     <fragment
         android:id="@+id/noticeFragment"
         android:name="com.example.multisigwallet.NoticeFragment"
-        android:label="fragment_notice"
+        android:label="Backup Publickey"
         tools:layout="@layout/fragment_notice">
         <action
             android:id="@+id/action_notice_to_welcome"

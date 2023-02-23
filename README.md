@@ -71,3 +71,4 @@ Flowはアカウントをオンチェーンで管理している。ウォレッ�
 
 ## Reference
 QR code reader: https://qiita.com/takasshii/items/5749a50e18fb524b72e6
+Back button on Nav: https://qiita.com/orimomo/items/c710ce4c5c3d2553ef07, https://qiita.com/m-coder/items/b50f716f0443fd4948f5

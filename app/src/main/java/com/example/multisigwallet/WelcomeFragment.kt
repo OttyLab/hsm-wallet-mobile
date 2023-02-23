@@ -44,10 +44,19 @@ class WelcomeFragment : Fragment() {
                             Snackbar.LENGTH_SHORT)
                         .show()
                 } else {
-                    val activity = activity as MainActivity
-                    activity.accountManager.setAddress(address)
-                    activity.accountManager.initKeyPair()
-                    findNavController().navigate(R.id.action_welcome_to_notice)
+                    try {
+                        val activity = activity as MainActivity
+                        activity.accountManager.setAddress(address)
+                        activity.accountManager.initKeyPair()
+                        findNavController().navigate(R.id.action_welcome_to_notice)
+                    } catch (e: Exception) {
+                        Snackbar
+                            .make(
+                                this@WelcomeFragment.requireView(),
+                                "Enable biometrics in system setting",
+                                Snackbar.LENGTH_LONG)
+                            .show()
+                    }
                 }
             }
         }
@@ -101,23 +110,38 @@ class WelcomeFragment : Fragment() {
     }
 
     private fun createAccount() {
-        buttonCreateAccount.isEnabled = false
-        buttonBackup.isEnabled = false
-        progressBarCreating.visibility = VISIBLE
+        enableUIs(false)
 
-        val activity = activity as MainActivity
-        val pk = activity.accountManager.initKeyPair()
+        try {
+            val activity = activity as MainActivity
+            val pk = activity.accountManager.initKeyPair()
 
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
-            val address = activity.flowManager.createAccount(pk)
-            activity.accountManager.setAddress(address)
-            Log.d("WelcomeFragment", "address=${address}")
-
-            val scope= CoroutineScope(Dispatchers.Main)
+            val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                findNavController().navigate(R.id.action_welcome_to_home)
+                val address = activity.flowManager.createAccount(pk)
+                activity.accountManager.setAddress(address)
+                Log.d("WelcomeFragment", "address=${address}")
+
+                val scope= CoroutineScope(Dispatchers.Main)
+                scope.launch {
+                    enableUIs(true)
+                    findNavController().navigate(R.id.action_welcome_to_home)
+                }
             }
+        } catch (e: java.lang.Exception) {
+            enableUIs(true)
+            Snackbar
+                .make(
+                    this@WelcomeFragment.requireView(),
+                    "Enable biometrics in system setting",
+                    Snackbar.LENGTH_LONG)
+                .show()
         }
+    }
+
+    private fun enableUIs(enabled: Boolean) {
+        buttonCreateAccount.isEnabled = enabled
+        buttonBackup.isEnabled = enabled
+        progressBarCreating.visibility = if (!enabled) VISIBLE else View.INVISIBLE
     }
 }

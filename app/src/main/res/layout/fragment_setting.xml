@@ -11,7 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="400px"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="100dp"
         android:layout_marginEnd="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,24 +35,37 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="50dp"
         android:layout_marginEnd="100dp"
         android:text="Scan Backup PK"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewAddress" />
 
+    <Switch
+        android:id="@+id/switchEnableMultisig"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Enable Multisig"
+        android:layout_marginStart="120dp"
+        android:layout_marginEnd="120dp"
+        android:layout_marginTop="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonAddPk" />
+
     <Button
-        android:id="@+id/buttonBack"
+        android:id="@+id/buttonDelete"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="150dp"
         android:layout_marginEnd="100dp"
-        android:text="Back"
+        android:backgroundTint="#DD0000"
+        android:text="RESET ACCOUNT"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonDelete" />
+        app:layout_constraintTop_toBottomOf="@+id/switchEnableMultisig" />
 
     <ProgressBar
         android:id="@+id/progressBarAdding"
@@ -67,16 +80,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewAddress" />
 
-    <Button
-        android:id="@+id/buttonDelete"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="50dp"
-        android:layout_marginEnd="100dp"
-        android:backgroundTint="#DD0000"
-        android:text="RESET ACCOUNT"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonAddPk" />
 </androidx.constraintlayout.widget.ConstraintLayout>

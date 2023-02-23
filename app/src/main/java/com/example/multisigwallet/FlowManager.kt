@@ -17,6 +17,7 @@ import kotlin.coroutines.suspendCoroutine
 class FlowManager(host: String, port: Int, activity: FragmentActivity) {
     private val accessApi = Flow.newAccessApi(host, port)
     private val activity = activity
+    private val signer = SignerImpl(activity)
     private var functions = Firebase.functions
 
     private val latestBlockId: FlowId get() = accessApi.getLatestBlockHeader().id
@@ -31,6 +32,17 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
     fun getKeyIndex(address: FlowAddress, pk: String): Int{
         val account = getAccount(address)
         return account.getKeyIndex(pk)
+    }
+
+    fun isMultisig(address: FlowAddress): Boolean {
+        val account = getAccount(address)
+        for(key in account.keys) {
+            if(key.revoked) continue;
+            if(key.publicKey != FlowPublicKey(signer.getPublicKey())) continue;
+            return key.weight < 1000.0
+        }
+
+        return false;
     }
 
     suspend fun createAccount(pk: String): String {
@@ -49,17 +61,15 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
     }
 
     fun getPk(): String {
-        val signer = SignerImpl(activity)
         return signer.getPublicKey()
     }
 
-    fun addPk(sender: String, pk: String): FlowId {
-        val stream = activity.assets.open("add_pk.cdc")
+    fun switchToMultisig(sender: String): FlowId {
+        val stream = activity.assets.open("switch_to_multisig.cdc")
         val script = InputStreamReader(stream).buffered().use { it.readText() }
-        val args = listOf(FlowArgument(StringField(pk)))
 
-        val txId = sendTransaction(sender, FlowScript(script), args)
-        Log.d("FlowManager", "add pk txId=${txId.bytes.toHexString()}")
+        val txId = sendTransaction(sender, FlowScript(script), emptyList())
+        Log.d("FlowManager", "switch to multisig txId=${txId.bytes.toHexString()}")
 
         return txId
     }
@@ -76,6 +86,92 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
         Log.d("FlowManager", "transfer txId=${txId.bytes.toHexString()}")
 
         return txId
+    }
+
+    fun createTransferTransaction(from: String, to: String, amount: BigDecimal): FlowTransaction?{
+        val sender = FlowAddress(from)
+
+        val keyIndex = getKeyIndex(sender, signer.getPublicKey())
+        if (keyIndex == -1) {
+            Log.e("FlowManager", "PK does not exiest")
+            return null
+        }
+
+        return createTransferTransaction(from, to, amount, keyIndex)
+    }
+
+    fun createTransferTransaction(
+        from: String,
+        to: String,
+        amount: BigDecimal,
+        keyIndex:Int,
+        blockId: FlowId = latestBlockId): FlowTransaction {
+        val stream = activity.assets.open("transfer.cdc")
+        val script = InputStreamReader(stream).buffered().use { it.readText() }
+        val args = listOf(
+            FlowArgument(UFix64NumberField(amount.toDouble().toString())),
+            FlowArgument(AddressField(to)),
+        )
+
+        val sender = FlowAddress(from)
+        return createTransaction(sender, FlowScript(script), args, keyIndex, blockId)
+    }
+
+    fun createAddBackupTransaction(from: String, pk: String): FlowTransaction? {
+        val sender = FlowAddress(from)
+
+        val keyIndex = getKeyIndex(sender, signer.getPublicKey())
+        if (keyIndex == -1) {
+            Log.e("FlowManager", "PK does not exiest")
+            return null
+        }
+
+        return createAddBackupTransaction(from, pk, keyIndex, latestBlockId)
+    }
+
+    fun createAddBackupTransaction(from: String, pk: String, keyIndex:Int, blockId: FlowId = latestBlockId): FlowTransaction {
+        val sender = FlowAddress(from)
+        val stream = activity.assets.open("add_pk.cdc")
+        val script = InputStreamReader(stream).buffered().use { it.readText() }
+        val weight = if (isMultisig(sender)) "500.0" else "1000.0"
+        val args = listOf(FlowArgument(StringField(pk)), FlowArgument(UFix64NumberField(weight)))
+
+        return createTransaction(sender, FlowScript(script), args, keyIndex, blockId)
+    }
+
+    fun createSwitchToSinglesigTransaction(from: String): FlowTransaction? {
+        val sender = FlowAddress(from)
+
+        val keyIndex = getKeyIndex(sender, signer.getPublicKey())
+        if (keyIndex == -1) {
+            Log.e("FlowManager", "PK does not exiest")
+            return null
+        }
+
+       return createSwitchToSinglesigTransaction(from, keyIndex, latestBlockId)
+    }
+
+    fun createSwitchToSinglesigTransaction(from: String, keyIndex:Int, blockId: FlowId = latestBlockId): FlowTransaction {
+        val sender = FlowAddress(from)
+        val stream = activity.assets.open("switch_to_singlesig.cdc")
+        val script = InputStreamReader(stream).buffered().use { it.readText() }
+
+        return createTransaction(sender, FlowScript(script), emptyList(), keyIndex, blockId)
+    }
+
+    fun signTransaction(tx: FlowTransaction, from: String): FlowTransaction? {
+        val sender = FlowAddress(from)
+        val keyIndex = getKeyIndex(sender, signer.getPublicKey())
+        if (keyIndex == -1) {
+            Log.e("FlowManager", "PK does not exiest")
+            return null
+        }
+
+        return tx.addEnvelopeSignature(sender, keyIndex, signer)
+    }
+
+    fun sendTransferTransaction(tx: FlowTransaction): FlowId {
+        return accessApi.sendTransaction(tx)
     }
 
     fun waitForSeal(txID: FlowId): FlowTransactionResult {
@@ -106,22 +202,31 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
 
     private fun sendTransaction(sender: String, script:FlowScript, args: List<FlowArgument>): FlowId {
         val sender = FlowAddress(sender)
-        val signer = SignerImpl(activity)
-        val pk = signer.getPublicKey()
-        val keyIndex = getKeyIndex(sender, pk)
 
-        Log.d("FlowManager", "pk=${pk}, keyIndex=${keyIndex}")
-
+        val keyIndex = getKeyIndex(sender, signer.getPublicKey())
         if (keyIndex == -1) {
             Log.e("FlowManager", "PK does not exiest")
             return FlowId("0x0")
         }
 
+        val tx = createTransaction(sender, script, args, keyIndex, latestBlockId)
+        val signed = tx.addEnvelopeSignature(sender, keyIndex, signer)
+
+        return accessApi.sendTransaction(signed)
+    }
+
+    private fun createTransaction(
+        sender: FlowAddress,
+        script:FlowScript,
+        args: List<FlowArgument>,
+        keyIndex: Int,
+        blockId: FlowId,
+    ): FlowTransaction {
         val key = getAccountKey(sender, keyIndex)
-        var tx = FlowTransaction(
+        return FlowTransaction(
             script = script,
             arguments = args,
-            referenceBlockId = latestBlockId,
+            referenceBlockId = blockId,
             gasLimit = 100,
             proposalKey = FlowTransactionProposalKey(
                 address = sender,
@@ -131,9 +236,5 @@ class FlowManager(host: String, port: Int, activity: FragmentActivity) {
             payerAddress = sender,
             authorizers = listOf(sender)
         )
-
-        tx = tx.addEnvelopeSignature(sender, keyIndex, signer)
-        val txId = accessApi.sendTransaction(tx)
-        return txId
     }
 }
