@@ -1,74 +1,83 @@
-# Lite HSM wallet for Flow
-## 概要
+# Lite HSM Wallet
 
-本プロジェクトはブロックチェーンにおける安全な秘密鍵管理を安価に提供することを目的とする。
-ここではFlowブロックチェーンを対象とし、Android端末でウォレットを作成した。
+## Overview
+The purpose of this project, `Lite HSM Wallet` is to provide a cost-effective solution for secure private key management in blockchain technology. The target blockchain for this project is the Flow blockchain, and the wallet was created for Android devices. `Lite HSM Wallet` utilizes the nature of Flow account model and it supports both single-sig and multi-sig.
 
-## 背景
+## Background
+Since the advent of Bitcoin, secure management of private keys has been a challenge. Cold wallets, such as paper wallets or hardware wallets, are generally considered to be the safest methods, but paper wallets are vulnerable to theft and hardware wallets are at risk of breakdown. While hardware wallets offer a backup feature using mnemonics to avoid the risk of breakdown, there is still a risk of mnemonic theft.
 
-Bintcoinの誕生以来、秘密鍵の安全な管理が課題として存在する。
-一般にはコールドウォレットの安全性が高く、ペーパーウォレットやハードウェアウォレットが使用される。
-ただし、ペーパーウォレットは盗難、ハードウェアウォレットは故障のリスクがある。
-また、ハードウェアウォレットは故障のリスク回避としてニーモニックのバックアップ機能が提供されるが、その場合はニーモニック盗難のリスクがある。
+Hardware Security Modules (HSMs) are an effective way to avoid these risks. Typically, HSMs store private keys internally in hardware, and there is no direct access to them from the outside. This means that private keys cannot be stolen, and only users with the appropriate permissions can sign transactions securely.
 
-これらのリスクを回避するためにはHSM (Hardware Security Module)が有効である。
-一般にHSMは秘密鍵をハードウェア内部に保存し、外部から直接アクセスする方法がない。
-そのため、秘密鍵が盗まれることはなく、権限を持つユーザーのみが安全に署名を行うことができる。
+However, many blockchains, including Bitcoin, use addresses that are derived directly from public keys. In this case, using an HSM without a backup for the private key would be taking a risk of breakdown (which is why hardware wallets offer a backup feature using mnemonics). Therefore, it is necessary to use an address system that is independent of the key pair, and that allows the key pair to be rotated arbitrarily, in order to use an HSM.
 
-しかし、Bitcoinに代表される多くのブロックチェーンでは公開鍵から直接導出されるアドレスを使用する。
-この場合、秘密鍵のバックアップが取れないHSMを使用することは故障に対するリスクを負うこととなる（そのため、ハードウェアウォレットはニーモニックのバックアック機能を提供している）。
-したがって、キーペアと独立したアドレスを使用し、キーペアが任意にキーローテーションできることがHSMを利用する必要条件となる。
+## Device
+HSMs are generally expensive, so a less expensive system is needed. The system that was chosen for this project is the StrongBox Keymaster that is provided by Android devices. The StrongBox Keymaster provides hardware-based cryptographic functions, and private keys are also managed within the hardware. This means that, like an HSM, there is no external access to the private keys.
+
+## Target Chain
+The cryptographic algorithms provided by the StrongBox Keymaster are limited, and only P-256 is provided as an elliptic function. Additionally, SHA-3 is not provided as a hash function. Therefore, a chain that meets these conditions and uses the above-mentioned address system that is independent of the key pair is the Flow blockchain.
+
+## Flow Account Management
+Flow manages accounts on-chain. The wallet creates a key pair and creates an account by issuing transactions and calling contracts on-chain to associate the public key with the account. Key rotation is possible by adding or deleting public keys for the account.
+
+Gas fees must be paid when issuing transactions, but the cost is low for wallet creation. The Lite HSM wallet is a good solution for those who want to create a Flow wallet at a low cost while ensuring secure private key management.
+
+## How Lite HSM Wallet works
+
+### Creating an account
+1. Click "CREAT ACCOUNT" in the welcome screen of the 1st Android device
+1. The device generates keypair inside StrongBox Keymaster
+1. Create an transaction with the Public Key, let the backend to sign it and broadcast it to the chain
 
 
-## デバイス
+### Adding a backup
+1. "START AS BACKUP" in the welcome screen of the 2nd Android device
+1. Scan QR code in the setting screen of the 1st device. The QR code represents account information like 0x prefixed address.
+1. The 2nd device generates keypair inside StrongBox Keymaster. The Public Key is displayed as a QR code
+1. Scan the QR code on the 2nd device by the 1st device. The 1st device creates an transaction which adds the 2nd Public Key
 
-HSMは一般に高価であるため、より安価なシステムが求められる。
-そこで今回着目したのがAndroid端末が提供する[StrongBox Keymaster](https://source.android.com/docs/security/best-practices/hardware?hl=ja)である。
-StrongBox Keymasterはハードウェア的に独立した暗号機能を提供しており、秘密鍵もそのハードウェア内部で管理される。
-つまり、HSMと同様に秘密鍵に対して外部からアクセスする手段が存在しない。
+### Switching to multi-sig
+1. Open setting screen
+1. Turn on "Enable Multisig"
+1. A transaction is created which revokes current keys and adds same keys with weight == 500.0
 
-## 対象チェーン
+### Transfering FLOW token with single-sig
+1. Tap "TRANSFER" in the home screen
+1. Input "To Flow Address" and "Amount"
+1. Tap "TRANSFER"
 
-StrongBox Keymasterが提供する暗号アルゴリズムは制限が強く、楕円関数としては[P-256のみ](https://developer.android.com/training/articles/keystore?hl=ja#HardwareSecurityModule)である。
-また、ハッシュ関数として[SHA-3も提供されない](https://developer.android.com/training/articles/keystore?hl=ja#SupportedSignatures)。
-これらの暗号の条件を満たし、かつ上記のキーペアと独立したアドレス体系を使用するチェーンとしてFlowブロックチェーンが挙げられる。
+### Transfering FLOW token with multi-sig
+1. Tap "CREATE MULTISIG TX" in the home screen of the 1st device
+1. Input "To Flow Address" and "Amount"
+1. Tap "CREATE" button and a QR code is shown
+1. Tap "SIGN MULTISIG TX" in the home screen of the 2nd device
+1. Scan the QR code on the 1st device by the 2nd device
+1. Tap "SIGN AND TRANSFER" on the 2nd device
 
-## Flowのアカウント管理
+### Receiving FLOW token
+1. Tap balance and a QR code which represents 0x prefixed address is shown.
 
-Flowはアカウントをオンチェーンで管理している。ウォレットはキーペアを作成し、トランザクションを発行してコントラクトを呼び出すことでアカウントの作成およびアカウトで使用する公開の紐付けをオンチェーン上で行う。
-アカウントに対して公開鍵を追加・削除することでキーローテーションを行うことができる。
+## Screenshots
 
-トランザクション発行時にガス代を支払う必要があるが、ウォレット作成時にはアカウントが存在しないためガス代を支払うことができない。
-そこで、Flowでは一般的にウォレット業者がガス代を肩代わりする。
-本プロジェクトではテストネット向けにトランザクションを代理で発行する[バックエンドを提供](https://github.com/OttyLab/hsm-wallet-backend)している。
+### welcome screen
+![welcome screen](./img/welcome.png) 
 
-## 本ウォレットの挙動
+### single-sig home screen
+![single-sig home screen](./img/singlesig-home.png) 
 
-本ウォレットはStrongBox KeymasterとFlowの機能を最大限利用する。
-特に、作成したアカウントに対して複数台の端末で管理する公開鍵を紐付けることで、秘密鍵を漏洩することなくアカウントのバックアップが可能である。
+### single-sig transfer screen
+![single-sig transfer screen](./img/singlesig-transfer.png) 
 
-1. 初回起動時はWelcome画面が表示
-2. CREATE ACCOUNT（一台目）かSTART AS BACKUP（二台目以降）を選択
+### multi-sig home screen
+![multi-sig home screen](./img/multisig-home.png) 
 
-### CREATE ACCOUNT
-1. ウォレットがキーペアを作成し、バックエンドに依頼してアカウントを作成
-2. Home画面に遷移し、使用可能となる
-3. Transferではトランザクション作成時に署名のための生体認証必要
+### multi-sig transfer screen
+![multi-sig transfer screen](./img/multisig-transfer.png) 
 
-### START AS BACKUP（二台目）
-1. ユーザーが既存アカウントのアドレスを入力
-2. ウォレットがキーペアを作成し、公開鍵を表示
-3. ユーザーが一台目の設定画面で公開鍵を入力
-4. 一台目のウォレットがトランザクションを発行し、公開鍵をアカウントに紐付け
-5. 二台目でもホーム画面に遷移して使用可能
+### settings screen
+![settings screen](./img/settings.png) 
 
-## 動画
 
-[CREATE ACCOUNT](./img/1.create_s.mp4)
-[送金](./img/2.transfer_s.mp4)
-[START AS　BACKUP](./img/3.backup_s.mp4)
-[公開鍵追加](./img/4.add_s.mp4)
+## Sample of how key is managed
+Following image shows 2 single-sig keys are revoked and 2 multi-sig keys are created.
 
-## Reference
-QR code reader: https://qiita.com/takasshii/items/5749a50e18fb524b72e6
-Back button on Nav: https://qiita.com/orimomo/items/c710ce4c5c3d2553ef07, https://qiita.com/m-coder/items/b50f716f0443fd4948f5
+![keys](./img/keys.png) 
