@@ -1,21 +1,18 @@
 package com.example.multisigwallet
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.snackbar.Snackbar
 
 class NoticeFragment : Fragment() {
     private lateinit var textViewPk: TextView
-    private lateinit var buttonCopy: Button
+    private lateinit var imageViewQr: ImageView
     private lateinit var buttonDone: Button
     private lateinit var buttonReset: Button
 
@@ -25,19 +22,15 @@ class NoticeFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_notice, container, false)
 
+
         val activity = activity as MainActivity
         val pk = activity.flowManager.getPk()
-        textViewPk = view.findViewById(R.id.textViewPk)
-        textViewPk.setText(pk)
 
-        buttonCopy = view.findViewById(R.id.buttonCopy)
-        buttonCopy.setOnClickListener(object: View.OnClickListener {
-            override fun onClick(v: View?) {
-                val clipboard = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("pk", pk))
-                Snackbar.make(view, "Copied", Snackbar.LENGTH_SHORT).show()
-            }
-        })
+        imageViewQr = view.findViewById(R.id.imageViewQr)
+        imageViewQr.setImageBitmap(getBackupQr(pk))
+
+        textViewPk = view.findViewById(R.id.textViewPk)
+        textViewPk.setText("Public Key: ${pk}")
 
         buttonDone = view.findViewById(R.id.buttonDone)
         buttonDone.setOnClickListener(object: View.OnClickListener {

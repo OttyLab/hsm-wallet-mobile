@@ -1,6 +1,5 @@
 package com.example.multisigwallet
 
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -11,6 +10,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import com.nftco.flow.sdk.FlowAddress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +31,36 @@ class WelcomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val launcher = registerForActivityResult(ScanContract()) { result ->
+            if (result.contents != null) {
+                val code = result.contents.toString()
+                val address = readAccount(code)
+
+                if(address == null) {
+                    Snackbar
+                        .make(
+                            this.requireView(),
+                            "Unexpected QR code: ${code}",
+                            Snackbar.LENGTH_SHORT)
+                        .show()
+                } else {
+                    try {
+                        val activity = activity as MainActivity
+                        activity.accountManager.setAddress(address)
+                        activity.accountManager.initKeyPair()
+                        findNavController().navigate(R.id.action_welcome_to_notice)
+                    } catch (e: Exception) {
+                        Snackbar
+                            .make(
+                                this@WelcomeFragment.requireView(),
+                                "Enable biometrics in system setting",
+                                Snackbar.LENGTH_LONG)
+                            .show()
+                    }
+                }
+            }
+        }
+
         val view = inflater.inflate(R.layout.fragment_welcome, container, false)
 
         progressBarCreating = view.findViewById(R.id.progressBarCreating)
@@ -42,7 +74,10 @@ class WelcomeFragment : Fragment() {
         buttonBackup = view.findViewById<Button>(R.id.buttonBackup)
         buttonBackup.setOnClickListener(object : View.OnClickListener{
             override fun onClick(v: View?) {
-                findNavController().navigate(R.id.action_welcome_to_backup)
+                val options = ScanOptions()
+                    .setPrompt("Scan account information on 1st device setting screen")
+                    .setOrientationLocked(false)
+                launcher.launch(options)
             }
         })
 
@@ -75,23 +110,38 @@ class WelcomeFragment : Fragment() {
     }
 
     private fun createAccount() {
-        buttonCreateAccount.isEnabled = false
-        buttonBackup.isEnabled = false
-        progressBarCreating.visibility = VISIBLE
+        enableUIs(false)
 
-        val activity = activity as MainActivity
-        val pk = activity.accountManager.initKeyPair()
+        try {
+            val activity = activity as MainActivity
+            val pk = activity.accountManager.initKeyPair()
 
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
-            val address = activity.flowManager.createAccount(pk)
-            activity.accountManager.setAddress(address)
-            Log.d("WelcomeFragment", "address=${address}")
-
-            val scope= CoroutineScope(Dispatchers.Main)
+            val scope = CoroutineScope(Dispatchers.IO)
             scope.launch {
-                findNavController().navigate(R.id.action_welcome_to_home)
+                val address = activity.flowManager.createAccount(pk)
+                activity.accountManager.setAddress(address)
+                Log.d("WelcomeFragment", "address=${address}")
+
+                val scope= CoroutineScope(Dispatchers.Main)
+                scope.launch {
+                    enableUIs(true)
+                    findNavController().navigate(R.id.action_welcome_to_home)
+                }
             }
+        } catch (e: java.lang.Exception) {
+            enableUIs(true)
+            Snackbar
+                .make(
+                    this@WelcomeFragment.requireView(),
+                    "Enable biometrics in system setting",
+                    Snackbar.LENGTH_LONG)
+                .show()
         }
+    }
+
+    private fun enableUIs(enabled: Boolean) {
+        buttonCreateAccount.isEnabled = enabled
+        buttonBackup.isEnabled = enabled
+        progressBarCreating.visibility = if (!enabled) VISIBLE else View.INVISIBLE
     }
 }

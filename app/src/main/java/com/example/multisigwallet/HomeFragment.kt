@@ -1,13 +1,9 @@
 package com.example.multisigwallet
 
 import android.os.Bundle
-import android.util.Log
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.TextView
 import androidx.navigation.fragment.findNavController
 import com.nftco.flow.sdk.FlowAddress
@@ -22,9 +18,28 @@ class HomeFragment : Fragment() {
     private lateinit var address: String
     private lateinit var textBalance: TextView
     private lateinit var buttonTransfer: Button
-    private lateinit var buttonReceive: Button
-    private lateinit var imageButtonSetting: ImageButton
+    private lateinit var buttonMultisigTransfer: Button
+    private lateinit var buttonSignTransfer: Button
     private lateinit var timer: Timer
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.home_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.actionSettings -> {
+            findNavController().navigate(R.id.action_home_to_setting)
+            true
+        }
+        else -> {
+            super.onOptionsItemSelected(item)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,6 +48,12 @@ class HomeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         textBalance = view.findViewById<TextView>(R.id.textBalance)
+        textBalance.setOnClickListener(object: View.OnClickListener{
+            override fun onClick(v: View?) {
+                findNavController().navigate(R.id.action_home_to_receive)
+            }
+        })
+
         buttonTransfer = view.findViewById<Button>(R.id.buttonTransfer)
         buttonTransfer.setOnClickListener(object : View.OnClickListener{
             override fun onClick(v: View?) {
@@ -40,21 +61,28 @@ class HomeFragment : Fragment() {
             }
         })
 
-        buttonReceive = view.findViewById<Button>(R.id.buttonReceive)
-        buttonReceive.setOnClickListener(object : View.OnClickListener{
+        buttonMultisigTransfer = view.findViewById<Button>(R.id.buttonMultisigTransfer)
+        buttonMultisigTransfer.setOnClickListener(object : View.OnClickListener{
             override fun onClick(v: View?) {
-                findNavController().navigate(R.id.action_home_to_receive)
+                findNavController().navigate(R.id.action_home_to_multisig_transfer)
             }
         })
 
-        imageButtonSetting = view.findViewById(R.id.imageButtonSetting)
-        imageButtonSetting.setOnClickListener(object : View.OnClickListener{
+        buttonSignTransfer = view.findViewById<Button>(R.id.buttonSignTransfer)
+        buttonSignTransfer.setOnClickListener(object : View.OnClickListener{
             override fun onClick(v: View?) {
-                findNavController().navigate(R.id.action_home_to_setting)
+                findNavController().navigate(R.id.action_home_to_sign_transfer)
             }
         })
 
         initAddress()
+
+        if(isMultisig()) {
+            buttonTransfer.visibility = View.GONE
+        } else {
+            buttonMultisigTransfer.visibility = View.GONE
+            buttonSignTransfer.visibility = View.GONE
+        }
 
         timer = Timer()
         timer.scheduleAtFixedRate(object: TimerTask(){
@@ -83,5 +111,10 @@ class HomeFragment : Fragment() {
         val activity = activity as MainActivity
         val balance = activity.flowManager.getAccountBalance(FlowAddress(address))
         textBalance.setText("${balance.setScale(5, RoundingMode.UP).toDouble()} FLOW")
+    }
+
+    private fun isMultisig(): Boolean {
+        val activity = activity as MainActivity
+        return activity.flowManager.isMultisig(FlowAddress(address))
     }
 }

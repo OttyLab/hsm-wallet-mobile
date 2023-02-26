@@ -1,4 +1,4 @@
-transaction(publicKey: String) {
+transaction(publicKey: String, weight: UFix64) {
     prepare(account: AuthAccount) {
         let key = PublicKey(
             publicKey: publicKey.decodeHex(),
@@ -8,7 +8,7 @@ transaction(publicKey: String) {
         account.keys.add(
             publicKey: key,
             hashAlgorithm: HashAlgorithm.SHA2_256,
-            weight: 1000.0
+            weight: weight
         )
     }
 }
