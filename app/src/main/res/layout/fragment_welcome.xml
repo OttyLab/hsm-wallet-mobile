@@ -55,7 +55,7 @@
         android:layout_marginEnd="100dp"
         android:text="Start As Backup"
         android:backgroundTint="#ffffff"
-        android:textColor="@color/design_default_color_primary"
+        android:textColor="@color/sub"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
